@@ -679,7 +679,7 @@ int16_t LSM6DS3::readRawGyroX( void )
 float LSM6DS3::readFloatGyroX( void )
 {
 	float output = calcGyro(readRawGyroX());
-	return output;
+	return output - getGyroXOffset();
 }
 
 int16_t LSM6DS3::readRawGyroY( void )
@@ -702,7 +702,7 @@ int16_t LSM6DS3::readRawGyroY( void )
 float LSM6DS3::readFloatGyroY( void )
 {
 	float output = calcGyro(readRawGyroY());
-	return output;
+	return output - getGyroYOffset();
 }
 
 int16_t LSM6DS3::readRawGyroZ( void )
@@ -725,7 +725,7 @@ int16_t LSM6DS3::readRawGyroZ( void )
 float LSM6DS3::readFloatGyroZ( void )
 {
 	float output = calcGyro(readRawGyroZ());
-	return output;
+	return output - getGyroZOffset();
 }
 
 float LSM6DS3::calcGyro( int16_t input )
@@ -737,6 +737,49 @@ float LSM6DS3::calcGyro( int16_t input )
 
 	float output = (float)input * 4.375 * (gyroRangeDivisor) / 1000;
 	return output;
+}
+
+//****************************************************************************//
+//
+//  Gyro Offset
+//
+//****************************************************************************//
+
+void LSM6DS3::calcGyroOffsets(uint16_t samplesTime){
+
+  delay(samplesTime/2);
+  int samples = 0;
+  float calSumX = 0.0;
+  float calSumY = 0.0;
+  float calSumZ = 0.0;
+  int start = millis();
+  float gyroXRaw, gyroYRaw, gyroZRaw;
+
+  while (millis() < start + samplesTime) { 
+	  
+	calSumX += readFloatGyroX();
+	calSumY += readFloatGyroY();
+	calSumZ += readFloatGyroZ();
+	samples++;
+	
+  }
+
+  _gyroXOffset = calSumX / samples;
+  _gyroYOffset = calSumY / samples;
+  _gyroZOffset = calSumZ / samples;
+
+}
+
+float LSM6DS3::getGyroXOffset(){
+  return _gyroXOffset;
+}
+
+float LSM6DS3::getGyroYOffset(){
+  return _gyroYOffset;
+}
+
+float LSM6DS3::getGyroZOffset(){
+  return _gyroZOffset;
 }
 
 //****************************************************************************//
